@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVIDIA 圖像生成 - 投票系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mode-btn:hover:not(.active) {
+            border-color: #667eea;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        select, input[type="number"] {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .image-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-info {
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .image-info h3 {
+            margin-bottom: 5px;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .image-info p {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .download-btn {
+            margin-top: 10px;
+            background: #28a745;
+            padding: 8px 15px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .examples h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .example-prompt {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 13px;
+        }
+
+        .example-prompt:hover {
+            background: #e9ecef;
+        }
+
+        .article-selector {
+            margin-bottom: 20px;
+        }
+
+        .article-list {
+            display: grid;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .article-item {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .article-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .article-item.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        }
+
+        .article-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .article-item p {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 NVIDIA 圖像生成</h1>
+        <p class="subtitle">使用 Stable Diffusion 3 Medium 模型生成高質量投票圖片</p>
+        
+        <div class="mode-selector">
+            <div class="mode-btn active" onclick="selectMode('batch')">
+                📦 批量生成（所有議題）
+            </div>
+            <div class="mode-btn" onclick="selectMode('single')">
+                🎯 單個生成（自定義）
+            </div>
+        </div>
+
+        <!-- 批量生成模式 -->
+        <div id="batchMode">
+            <button onclick="generateBatch()" id="batchBtn">
+                🚀 使用 NVIDIA AI 生成所有投票圖片
+            </button>
+        </div>
+
+        <!-- 單個生成模式 -->
+        <div id="singleMode" style="display: none;">
+            <div class="article-selector">
+                <label>選擇投票議題：</label>
+                <div class="article-list" id="articleList">
+                    <p style="color: #999; text-align: center; padding: 20px;">加載中...</p>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label for="customPrompt">自定義提示詞（可選）：</label>
+                <textarea id="customPrompt" placeholder="留空將自動根據議題生成提示詞，或輸入自定義描述..."></textarea>
+            </div>
+
+            <div class="options">
+                <div class="option-group">
+                    <label for="steps">生成步數：</label>
+                    <input type="number" id="steps" value="30" min="10" max="50">
+                </div>
+                <div class="option-group">
+                    <label for="guidance">引導係數：</label>
+                    <input type="number" id="guidance" value="7.5" min="1" max="20" step="0.5">
+                </div>
+            </div>
+
+            <button onclick="generateSingle()" id="singleBtn">生成單個圖片</button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="images-grid" id="imagesGrid"></div>
+
+        <div class="examples">
+            <h3>💡 自定義提示詞示例（點擊使用）：</h3>
+            <div class="example-prompt" onclick="useExample(this)">Professional news infographic about US-China relations, red and white theme</div>
+            <div class="example-prompt" onclick="useExample(this)">Political voting poster with traditional Chinese typography, modern design</div>
+            <div class="example-prompt" onclick="useExample(this)">Economic news style banner with bold text and clean layout</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        let currentMode = 'batch';
+        let selectedArticle = null;
+        let articles = [];
+
+        // 初始化
+        window.onload = async () => {
+            await loadArticles();
+        };
+
+        // 加載文章列表
+        async function loadArticles() {
+            try {
+                const response = await fetch(`${API_BASE}/api/articles`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    articles = data.articles;
+                    renderArticleList();
+                }
+            } catch (error) {
+                console.error('加載文章失敗:', error);
+                document.getElementById('articleList').innerHTML = 
+                    '<p style="color: red; text-align: center;">加載失敗</p>';
+            }
+        }
+
+        // 渲染文章列表
+        function renderArticleList() {
+            const listEl = document.getElementById('articleList');
+            listEl.innerHTML = '';
+
+            articles.forEach(article => {
+                const item = document.createElement('div');
+                item.className = 'article-item';
+                item.onclick = () => selectArticle(article.id, item);
+                item.innerHTML = `
+                    <h4>#${article.id} ${article.title}</h4>
+                    <p>${article.question}</p>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        // 選擇文章
+        function selectArticle(id, element) {
+            // 移除其他選中狀態
+            document.querySelectorAll('.article-item').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // 設置當前選中
+            element.classList.add('selected');
+            selectedArticle = articles.find(a => a.id === id);
+        }
+
+        // 選擇模式
+        function selectMode(mode) {
+            currentMode = mode;
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 顯示對應界面
+            document.getElementById('batchMode').style.display = mode === 'batch' ? 'block' : 'none';
+            document.getElementById('singleMode').style.display = mode === 'single' ? 'block' : 'none';
+        }
+
+        // 批量生成
+        async function generateBatch() {
+            const btn = document.getElementById('batchBtn');
+            btn.disabled = true;
+            showStatus('🎨 正在使用 NVIDIA AI 批量生成圖片，請稍候...', 'loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ use_nvidia: true })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`✅ 成功生成 ${data.images_count} 張圖片！`, 'success');
+                    loadGeneratedImages();
+                } else {
+                    throw new Error(data.error || '生成失敗');
+                }
+            } catch (error) {
+                showStatus(`❌ 錯誤：${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 單個生成
+        async function generateSingle() {
+            if (!selectedArticle) {
+                showStatus('⚠️ 請先選擇一個投票議題', 'error');
+                return;
+            }
+
+            const customPrompt = document.getElementById('customPrompt').value.trim();
+            const steps = parseInt(document.getElementById('steps').value);
+            const guidance = parseFloat(document.getElementById('guidance').value);
+            const btn = document.getElementById('singleBtn');
+
+            btn.disabled = true;
+            showStatus('🎨 正在生成圖片...', 'loading');
+
+            try {
+                // 這裡可以擴展 API 支持自定義參數
+                // 目前先使用默認方式生成
+                const response = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        use_nvidia: true,
+                        article_id: selectedArticle.id,
+                        custom_prompt: customPrompt || null,
+                        steps: steps,
+                        guidance_scale: guidance
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('✅ 圖片生成成功！', 'success');
+                    loadGeneratedImages();
+                } else {
+                    throw new Error(data.error || '生成失敗');
+                }
+            } catch (error) {
+                showStatus(`❌ 錯誤：${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 加載生成的圖片
+        async function loadGeneratedImages() {
+            const grid = document.getElementById('imagesGrid');
+            grid.innerHTML = '';
+
+            for (const article of articles) {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+
+                const imageUrl = `${API_BASE}/api/image/${article.id}?t=${Date.now()}`;
+
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="${article.title}" 
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22><rect fill=%22%23f0f0f0%22 width=%22300%22 height=%22300%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22>暫無圖片</text></svg>'">
+                    <div class="image-info">
+                        <h3>${article.title}</h3>
+                        <p>${article.question.substring(0, 50)}...</p>
+                        <button class="download-btn" onclick="downloadImage('${imageUrl}', '${article.title}')">
+                            📥 下載圖片
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        // 下載圖片
+        function downloadImage(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `voting_${filename}_${Date.now()}.png`;
+            link.click();
+        }
+
+        // 顯示狀態
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        // 使用示例
+        function useExample(element) {
+            document.getElementById('customPrompt').value = element.textContent;
+        }
+    </script>
+</body>
+</html>

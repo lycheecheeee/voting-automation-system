@@ -1,0 +1,17 @@
+services:
+  voting-app:
+    build: .
+    container_name: voting-automation
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./output:/app/output
+    networks:
+      - voting-network
+    restart: unless-stopped
+
+networks:
+  voting-network:
+    driver: bridge

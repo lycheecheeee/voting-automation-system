@@ -1,0 +1,8 @@
+.dockerignore
+*.pyc
+__pycache__
+.git
+.env
+voting_*.log
+news.json
+voting_topics.json

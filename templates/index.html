@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能投票自動化系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Articles Grid */
+        .articles-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .article-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .article-category {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .article-id {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .article-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .article-question {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .article-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+
+        /* Loading & Status */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .toast.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .toast.info {
+            border-left: 4px solid #17a2b8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                🗳️ 智能投票自動化系統
+                <span id="statusBadge" class="status-badge status-offline">
+                    <span>●</span>
+                    <span>離線</span>
+                </span>
+            </h1>
+            <p>自動生成投票題目、圖片和報告 | AI 驅動 | 實時監控</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-buttons">
+                <button onclick="generateArticles()" class="btn-primary" id="generateBtn">
+                    <span>✨</span>
+                    <span>生成新議題</span>
+                </button>
+                <button onclick="refreshArticles()" class="btn-secondary">
+                    <span>🔄</span>
+                    <span>刷新列表</span>
+                </button>
+                <button onclick="exportCSV()" class="btn-secondary">
+                    <span>📊</span>
+                    <span>匯出 CSV</span>
+                </button>
+                <button onclick="exportJSON()" class="btn-secondary">
+                    <span>📄</span>
+                    <span>匯出 JSON</span>
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalArticles">0</div>
+                    <div class="stat-label">總議題數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgControversy">0</div>
+                    <div class="stat-label">平均爭議度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgHotness">0</div>
+                    <div class="stat-label">平均熱度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="categories">0</div>
+                    <div class="stat-label">分類數量</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles Section -->
+        <div class="articles-section">
+            <div class="section-title">
+                <span>📋 投票議題列表</span>
+                <span style="font-size: 14px; color: #999;" id="lastUpdate">最後更新: --</span>
+            </div>
+            <div class="articles-grid" id="articlesGrid">
+                <!-- Articles will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>處理中，請稍候...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkHealth();
+            loadArticles();
+        });
+
+        // Check API Health
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    updateStatus(true);
+                } else {
+                    updateStatus(false);
+                }
+            } catch (error) {
+                updateStatus(false);
+            }
+        }
+
+        // Update Status Badge
+        function updateStatus(isOnline) {
+            const badge = document.getElementById('statusBadge');
+            if (isOnline) {
+                badge.className = 'status-badge status-online';
+                badge.innerHTML = '<span>●</span><span>在線</span>';
+            } else {
+                badge.className = 'status-badge status-offline';
+                badge.innerHTML = '<span>●</span><span>離線</span>';
+            }
+        }
+
+        // Load Articles
+        async function loadArticles() {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/api/articles`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderArticles(data.articles);
+                    updateStats(data.articles);
+                    showToast('success', '議題列表已更新');
+                } else {
+                    showToast('error', '載入失敗');
+                }
+            } catch (error) {
+                showToast('error', '無法連接服務器');
+                console.error('Error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render Articles
+        function renderArticles(articles) {
+            const grid = document.getElementById('articlesGrid');
+            
+            if (articles.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暫無議題，點擊「生成新議題」開始</p>';
+                return;
+            }
+
+            grid.innerHTML = articles.map(article => `
+                <div class="article-card">
+                    <div class="article-header">
+                        <span class="article-category">${article.category}</span>
+                        <span class="article-id">#${article.id}</span>
+                    </div>
+                    <h3 class="article-title">${article.title}</h3>
+                    <p class="article-question">${article.question}</p>
+                    
+                    <div class="article-options">
+                        ${article.options.map((opt, idx) => `
+                            <div class="option-item">${idx + 1}. ${opt}</div>
+                        `).join('')}
+                    </div>
+
+                    <div class="article-meta">
+                        <div class="meta-item">
+                            <span>🔥</span>
+                            <span>爭議度: ${article.controversy}%</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>📈</span>
+                            <span>熱度: ${article.hotness}%</span>
+                        </div>
+                    </div>
+
+                    <div class="article-actions">
+                        <button class="btn-small btn-secondary" onclick="playTTS('${article.question}')">
+                            🔊 語音播報
+                        </button>
+                        <button class="btn-small btn-secondary" onclick="viewImage(${article.id})">
+                            🖼️ 查看圖片
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('lastUpdate').textContent = 
+                '最後更新: ' + new Date().toLocaleString('zh-TW');
+        }
+
+        // Update Statistics
+        function updateStats(articles) {
+            document.getElementById('totalArticles').textContent = articles.length;
+            
+            if (articles.length > 0) {
+                const avgControversy = Math.round(
+                    articles.reduce((sum, a) => sum + a.controversy, 0) / articles.length
+                );
+                const avgHotness = Math.round(
+                    articles.reduce((sum, a) => sum + a.hotness, 0) / articles.length
+                );
+                const categories = new Set(articles.map(a => a.category)).size;
+
+                document.getElementById('avgControversy').textContent = avgControversy;
+                document.getElementById('avgHotness').textContent = avgHotness;
+                document.getElementById('categories').textContent = categories;
+            }
+        }
+
+        // Generate New Articles
+        async function generateArticles() {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('success', `成功生成 ${data.images_count} 張圖片`);
+                    loadArticles();
+                } else {
+                    showToast('error', data.error || '生成失敗');
+                }
+            } catch (error) {
+                showToast('error', '生成失敗，請檢查服務器');
+                console.error('Error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Refresh Articles
+        function refreshArticles() {
+            loadArticles();
+        }
+
+        // Export CSV
+        function exportCSV() {
+            window.open(`${API_BASE}/api/export/csv`, '_blank');
+            showToast('info', 'CSV 下載中...');
+        }
+
+        // Export JSON
+        function exportJSON() {
+            window.open(`${API_BASE}/api/export/json`, '_blank');
+            showToast('info', 'JSON 下載中...');
+        }
+
+        // Play TTS
+        function playTTS(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-HK';
+                utterance.rate = 1.0;
+                speechSynthesis.speak(utterance);
+                showToast('info', '正在播放語音...');
+            } else {
+                showToast('error', '您的瀏覽器不支持語音功能');
+            }
+        }
+
+        // View Image
+        function viewImage(articleId) {
+            window.open(`${API_BASE}/api/image/${articleId}`, '_blank');
+        }
+
+        // Show/Hide Loading
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.toggle('active', show);
+        }
+
+        // Show Toast Notification
+        function showToast(type, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
