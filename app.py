@@ -15,7 +15,10 @@ except ImportError:
 # 導入自動化模組
 try:
     from news_fetcher import NewsFetcher
-    from ai_topic_generator import AITopicGenerator
+    try:
+        from ai_topic_generator import AITopicGeneratorFixed as AITopicGenerator
+    except ImportError:
+        from ai_topic_generator import AITopicGenerator
     AUTOMATION_AVAILABLE = True
 except ImportError:
     AUTOMATION_AVAILABLE = False
