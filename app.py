@@ -214,10 +214,27 @@ def api_auto_generate():
                 
                 # 步驟 3: 生成圖片
                 automation_status['progress'] = 70
-                automation_status['message'] = '生成圖片中...'
+                automation_status['message'] = '清除舊圖片...'
                 
+                # 清除舊圖片
+                import shutil
+                if os.path.exists('output_images'):
+                    shutil.rmtree('output_images')
+                os.makedirs('output_images', exist_ok=True)
+                
+                automation_status['message'] = '使用 NVIDIA 生成高質量圖片...'
+                
+                images = []
+                
+                # 優先使用 NVIDIA
                 if use_nvidia and NVIDIA_AVAILABLE:
-                    images = generate_all_images_nvidia(topics, "output_images")
+                    try:
+                        automation_status['message'] = f'NVIDIA 生成中 (1/{len(topics)})...'
+                        images = generate_all_images_nvidia(topics, "output_images")
+                        automation_status['message'] = f'✅ NVIDIA 成功生成 {len(images)} 張圖片'
+                    except Exception as e:
+                        automation_status['message'] = f'⚠️ NVIDIA 失敗: {str(e)[:50]}，使用本地生成器'
+                        images = generate_all_images(topics, "output_images")
                 else:
                     images = generate_all_images(topics, "output_images")
                 
