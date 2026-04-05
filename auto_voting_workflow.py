@@ -30,7 +30,7 @@ except ImportError:
 
 import json
 
-class AutoVotingWorkflowFixed:
+class AutoVotingWorkflow:
     """自動化投票議題生成工作流（修復版）"""
     
     def __init__(self):
