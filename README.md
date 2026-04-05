@@ -1,135 +1,64 @@
-# 投票自動化系統使用指南
+﻿# 🚀 Voting Automation System - NVIDIA AI Powered
 
-## 功能概述
+## ✨ Features
 
-自動搜尋國際新聞 → 生成投票題目 → 製作圖片 → 生成報告
+- ✅ Automated news fetching from Google News
+- ✅ AI-powered topic generation (with fallback)
+- ✅ NVIDIA Stable Diffusion 3 image generation
+- ✅ One-click complete workflow
+- ✅ Mobile responsive design
+- ✅ Login protection (lychee / lycheechee2026)
 
-- **新聞來源**：BBC、Reuters、Bloomberg、The Guardian RSS feeds
-- **題目生成**：本地 Mistral AI 模型（免費）
-- **圖片生成**：Python Pillow
-- **輸出**：JSON + HTML 報告 + PNG 圖片
-- **排程**：每週一早上 9 點
+## 🎯 Quick Start
 
-## 快速開始
+### Local Development
+\\\ash
+cd C:\voting-automation
+C:\Users\lyche\AppData\Local\Python\bin\python.exe app.py
+\\\
 
-### 前置需求
-- Docker & Docker Compose
-- 或 Python 3.11+ + Ollama
+Visit: http://localhost:5000/auto-generate
 
-### 方法 1：Docker Compose（推薦）
+### Deploy to Vercel
 
-```bash
-cd voting-automation
-docker compose up --pull always
-```
+1. Install Vercel CLI:
+\\\ash
+npm i -g vercel
+\\\
 
-首次執行會自動：
-1. 下載 Ollama 模型
-2. 啟動 Ollama 服務
-3. 執行投票自動化
-4. 生成報告
+2. Deploy:
+\\\ash
+vercel --prod
+\\\
 
-輸出檔案：
-- `voting_report.html` - 用瀏覽器打開查看
-- `output_images/` - 投票圖片
-- `news.json` - 新聞資料
-- `voting_topics.json` - 題目資料
+3. Set environment variables in Vercel dashboard:
+   - NVIDIA_API_KEY
+   - DMXAPI_API_KEY
+   - ADMIN_USERNAME=lychee
+   - ADMIN_PASSWORD=lycheechee2026
 
-### 方法 2：本地執行
+## 📁 Project Structure
 
-```bash
-# 安裝依賴
-pip install -r requirements.txt
+\\\
+voting-automation/
+├── app.py                      # Flask main application
+├── news_fetcher.py             # News fetching module
+├── ai_topic_generator.py       # AI topic generator
+├── auto_voting_workflow.py     # Automation workflow
+├── nvidia_image_generator.py   # NVIDIA image generation
+├── templates/
+│   ├── index.html              # Main page
+│   ├── nvidia_gen.html         # NVIDIA gen page
+│   └── auto_generate.html      # Auto-gen page
+├── .env                        # Environment variables (gitignored)
+├── requirements.txt            # Python dependencies
+└── vercel.json                 # Vercel configuration
+\\\
 
-# 啟動 Ollama（另一個終端）
-ollama serve
+## 🔑 API Keys
 
-# 拉取 Mistral 模型
-ollama pull mistral
+All API keys are stored in \.env\ file (not committed to Git).
 
-# 執行
-python main.py
-```
+## 🏆 User Lie-Down Index: 🛋️🛋️🛋️🛋️🛋️ 5/5
 
-## 排程設定
-
-### macOS / Linux (cron)
-```bash
-crontab -e
-# 加入：0 9 * * 1 /path/to/voting-automation/run_automation.sh
-```
-
-### Windows (Task Scheduler)
-見 SCHEDULING.md
-
-### GitHub Actions
-見 SCHEDULING.md
-
-## 自訂選項
-
-編輯 `news_fetcher.py` 更改新聞來源：
-```python
-NEWS_FEEDS = [
-    "https://...",  # 自訂 RSS feed
-]
-```
-
-編輯 `topic_generator.py` 調整題目風格：
-```python
-prompt = """Your custom prompt..."""
-```
-
-## 常見問題
-
-**Q: 執行失敗說找不到 Mistral 模型**
-A: 第一次執行時需要下載模型（約 5GB），或手動執行：
-```bash
-docker compose exec ollama ollama pull mistral
-```
-
-**Q: 生成的題目質量不好**
-A: Mistral 是輕量模型。改用更強大的模型：
-```bash
-ollama pull neural-chat  # 或 llama2
-```
-再編輯 `topic_generator.py` 改變 model="mistral" → model="neural-chat"
-
-**Q: 想用 OpenAI API 而不是本地模型**
-A: 編輯 `topic_generator.py`：
-```python
-import openai
-# 改為調用 OpenAI API
-```
-
-**Q: 想自動上傳到 Google Drive / Dropbox**
-A: 安裝 rclone：
-```bash
-rclone config  # 配置雲端帳號
-# 編輯 run_automation.sh 加入上傳命令
-```
-
-## 進階：集成到網站
-
-生成的 `voting_report.html` 可以：
-1. 放到 web server（nginx、Apache）
-2. 用 Python Flask / Django 包裝
-3. 集成到現有網站
-
-## 日誌
-
-查看執行日誌：
-```bash
-cat voting_*.log
-```
-
-## 支持的 Ollama 模型
-
-- `mistral` - 輕量、快速（推薦）
-- `neural-chat` - 更好質量
-- `llama2` - 更強大但慢
-- `orca-mini` - 最輕量
-
-拉取模型：
-```bash
-docker compose exec ollama ollama pull <model_name>
-```
+Users can fully relax - the system handles everything automatically!
